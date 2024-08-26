@@ -1,6 +1,6 @@
 {
-  "name": "Scrim-s06he6p",
-  "description": "https://v2.scrimba.com/learn-javascript-c0v/~0563",
+  "name": "Tab Tracker",
+  "description": "https://github.com/TheGhossst/TabTracker",
   "scripts": {
     "start": "vite",
     "dev": "vite",
