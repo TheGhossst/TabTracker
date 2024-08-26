@@ -1,31 +1,26 @@
-let mytabs = []
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"
+import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js"
+
+const firebaseConfig = {
+    databaseURL: "https://birthday-app-2bcd2-default-rtdb.asia-southeast1.firebasedatabase.app/"
+}
+
+const app = initializeApp(firebaseConfig)
+const database = getDatabase(app)
+const referenceInDB = ref(database, "leads")
+
 const inputEl = document.getElementById("input-el")
 const inputBtn = document.getElementById("input-btn")
 const ulEl = document.getElementById("ul-el")
 const deleteBtn = document.getElementById("delete-btn")
-const tabsFromLocalStorage = JSON.parse( localStorage.getItem("mytabs") )
-const tabBtn = document.getElementById("tab-btn")
 
-if (tabsFromLocalStorage) {
-    mytabs = tabsFromLocalStorage
-    render(mytabs)
-}
-
-tabBtn.addEventListener("click", function(){    
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-        mytabs.push(tabs[0].url)
-        localStorage.setItem("mytabs", JSON.stringify(mytabs) )
-        render(mytabs)
-    })
-})
-
-function render(tabs) {
+function render(leads) {
     let listItems = ""
-    for (let i = 0; i < tabs.length; i++) {
+    for (let i = 0; i < leads.length; i++) {
         listItems += `
             <li>
-                <a target='_blank' href='${tabs[i]}'>
-                    ${tabs[i]}
+                <a target='_blank' href='${leads[i]}'>
+                    ${leads[i]}
                 </a>
             </li>
         `
@@ -33,15 +28,37 @@ function render(tabs) {
     ulEl.innerHTML = listItems
 }
 
+onValue(referenceInDB, function(snapshot) {
+    if (snapshot.exists()) {
+        const snapshotValues = snapshot.val()
+        const leads = Object.values(snapshotValues)
+        render(leads)
+    } else {
+        ulEl.innerHTML = "" 
+    }
+}, function(error) {
+    console.error("Error reading data:", error)
+})
+
 deleteBtn.addEventListener("dblclick", function() {
-    localStorage.clear()
-    mytabs = []
-    render(mytabs)
+    remove(referenceInDB)
+        .then(() => {
+            ulEl.innerHTML = "" 
+        })
+        .catch((error) => {
+            console.error("Error deleting data:", error)
+        })
 })
 
 inputBtn.addEventListener("click", function() {
-    mytabs.push(inputEl.value)
-    inputEl.value = ""
-    localStorage.setItem("mytabs", JSON.stringify(mytabs) )
-    render(mytabs)
+    const leadValue = inputEl.value.trim()
+    if (leadValue) {
+        push(referenceInDB, leadValue)
+            .then(() => {
+                inputEl.value = "" 
+            })
+            .catch((error) => {
+                console.error("Error adding data:", error)
+            })
+    }
 })
