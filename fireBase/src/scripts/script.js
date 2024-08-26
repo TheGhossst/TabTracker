@@ -11,6 +11,7 @@ const referenceInDB = ref(database, "leads")
 
 const inputEl = document.getElementById("input-el")
 const inputBtn = document.getElementById("input-btn")
+const saveTabBtn = document.getElementById("save-tab-btn")
 const ulEl = document.getElementById("ul-el")
 const deleteBtn = document.getElementById("delete-btn")
 
@@ -61,4 +62,21 @@ inputBtn.addEventListener("click", function() {
                 console.error("Error adding data:", error)
             })
     }
+})
+
+saveTabBtn.addEventListener("click", function() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        const activeTab = tabs[0]
+        const activeTabURL = activeTab.url
+        inputEl.value = activeTabURL
+        if (activeTabURL) {
+            push(referenceInDB, activeTabURL)
+                .then(() => {
+                    inputEl.value = ""
+                })
+                .catch((error) => {
+                    console.error("Error saving tab URL:", error)
+                })
+        }
+    })
 })

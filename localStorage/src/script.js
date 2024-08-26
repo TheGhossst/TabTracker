@@ -4,7 +4,7 @@ const inputBtn = document.getElementById("input-btn")
 const ulEl = document.getElementById("ul-el")
 const deleteBtn = document.getElementById("delete-btn")
 const tabsFromLocalStorage = JSON.parse( localStorage.getItem("mytabs") )
-const tabBtn = document.getElementById("tab-btn")
+const saveTabBtn = document.getElementById("save-tab-btn")
 
 if (tabsFromLocalStorage) {
     mytabs = tabsFromLocalStorage
@@ -44,4 +44,21 @@ inputBtn.addEventListener("click", function() {
     inputEl.value = ""
     localStorage.setItem("mytabs", JSON.stringify(mytabs) )
     render(mytabs)
+})
+
+saveTabBtn.addEventListener("click", function() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        const activeTab = tabs[0]
+        const activeTabURL = activeTab.url
+        inputEl.value = activeTabURL
+        if (activeTabURL) {
+            push(referenceInDB, activeTabURL)
+                .then(() => {
+                    inputEl.value = ""
+                })
+                .catch((error) => {
+                    console.error("Error saving tab URL:", error)
+                })
+        }
+    })
 })
